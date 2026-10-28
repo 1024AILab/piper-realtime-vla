@@ -1,0 +1,13 @@
+#infer-preview, #infer-execute { min-height: 45px; font-weight: 650; }
+#infer-execute { background: #1c3c32 !important; color: #87e5bd !important; border: 1px solid #43745e !important; }
+#infer-execute:disabled { opacity: .4; }
+#infer-stop { border: 1px solid #914b44 !important; background: #452723 !important; color: #ffc0ad !important; font-weight: 650; }
+#global-infer-stop { position: fixed; right: 22px; bottom: 18px; width: 145px !important; min-width: 145px !important; z-index: 99;
+  border: 1px solid #a65a4e !important; background: #542c27 !important; color: #ffccbc !important; box-shadow: 0 4px 18px #0008; font-weight: 700; }
+.studio-footer { padding-bottom: 54px; }
+.control-panel { gap: 10px !important; }
+#infer-safety-ack label { min-height: 48px; padding: 12px !important; cursor: pointer !important; }
+#infer-safety-ack input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; cursor: pointer; }
+#infer-home { color: #9cd7ed !important; background: #18323e !important; border-color: #335f70 !important; }
+.camera-view { min-height: 250px; }
+@media(min-width: 1100px) { .control-panel { max-width: 400px; } }

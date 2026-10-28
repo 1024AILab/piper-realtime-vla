@@ -1,0 +1,19 @@
+{
+  "mode": "hardware_bus",
+  "dataset_root": "datasets/piper_dataset",
+  "follower_port": "can0",
+  "leader_source": "control",
+  "motion_mode": "mit",
+  "max_joint_speed_deg_s": 15,
+  "max_gripper_speed_mm_s": 30,
+  "image": {
+    "backend": "realsense",
+    "device": "REPLACE_FRONT_SERIAL",
+    "fps": 30
+  },
+  "wrist_image": {
+    "backend": "realsense",
+    "device": "REPLACE_WRIST_SERIAL",
+    "fps": 30
+  }
+}

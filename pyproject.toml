@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "piper-realtime-vla"
+version = "0.1.0"
+description = "Asynchronous VLA inference and continuous 50 Hz action execution for Piper"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "gradio==6.27.0",
+  "numpy>=1.26,<3",
+  "scipy>=1.13,<2",
+  "Pillow>=10,<13",
+  "pyarrow>=17,<26",
+  "filelock>=3.16,<4",
+  "websockets>=14,<16",
+  "msgpack>=1,<2",
+]
+
+[project.optional-dependencies]
+hardware = ["python-can==4.6.1", "opencv-python-headless>=4.10,<5"]
+mac = ["python-can[gs-usb]==4.6.1", "libusb-package==1.0.30.0", "opencv-python-headless>=4.10,<5"]
+realsense = [
+  "pyrealsense2>=2.55,<3; sys_platform != 'darwin'",
+]
+test = ["pytest>=8,<10", "piper-sdk==0.6.2"]
+
+[project.scripts]
+piper-inference = "piper_studio.inference_app:main"
+piper-doctor = "piper_studio.doctor:main"
+
+[tool.setuptools.packages.find]
+include = ["piper_studio*"]
+
+[tool.setuptools.package-data]
+piper_studio = ["*.css"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,22 @@
+{
+  "mode": "hardware_bus",
+  "dataset_root": "datasets/piper_dataset",
+  "can_backend": "gs_usb",
+  "can_bitrate": 1000000,
+  "follower_port": "0",
+  "leader_source": "control",
+  "motion_mode": "mit",
+  "max_joint_speed_deg_s": 5,
+  "max_gripper_speed_mm_s": 50,
+  "max_follow_error_deg": 15,
+  "image": {
+    "backend": "realsense_bridge",
+    "device": "000000000001",
+    "fps": 30
+  },
+  "wrist_image": {
+    "backend": "realsense_bridge",
+    "device": "000000000002",
+    "fps": 30
+  }
+}

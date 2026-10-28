@@ -1,0 +1,12 @@
+{
+  "mode": "sim",
+  "dataset_root": "datasets/sim_piper_dataset",
+  "image": {
+    "backend": "sim",
+    "device": "0"
+  },
+  "wrist_image": {
+    "backend": "sim",
+    "device": "1"
+  }
+}

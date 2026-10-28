@@ -1,0 +1,23 @@
+# Local environments and generated files
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+.DS_Store
+datasets/
+runtime/
+reports/
+checkpoints/
+*.safetensors
+*.ckpt
+.env
+.env.*
+!.env.example
+configs/*.local.json
+configs/*known_hosts*
+*.log
+*.pid

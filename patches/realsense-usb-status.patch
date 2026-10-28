@@ -1,0 +1,143 @@
+diff --git a/src/backend-device-factory.cpp b/src/backend-device-factory.cpp
+index da3989e..21d2a1d 100644
+--- a/src/backend-device-factory.cpp
++++ b/src/backend-device-factory.cpp
+@@ -108,6 +108,12 @@ public:
+         return _callbacks.subscribe( std::move( cb ) );
+     }
+ 
++    ~device_watcher_singleton()
++    {
++        // Stop callbacks before their signal/mutex members are destroyed.
++        _device_watcher->stop();
++    }
++
+     std::shared_ptr< platform::backend > const get_backend() const { return _backend->get(); }
+ };
+ 
+diff --git a/src/global_timestamp_reader.cpp b/src/global_timestamp_reader.cpp
+index a87893e..ef12e7e 100644
+--- a/src/global_timestamp_reader.cpp
++++ b/src/global_timestamp_reader.cpp
+@@ -1,6 +1,7 @@
+ // License: Apache 2.0. See LICENSE file in root directory.
+ // Copyright(c) 2015 RealSense, Inc. All Rights Reserved.
+ #include "global_timestamp_reader.h"
++#include <cstdlib>
+ #include <algorithm>
+ #include <chrono>
+ #include <cmath>
+@@ -572,6 +573,15 @@ namespace librealsense
+ 
+     void global_time_interface::enable_time_diff_keeper(bool is_enable)
+     {
++#ifdef __APPLE__
++        // RGB helper timestamps each acquired frame with host monotonic time.
++        // Merely disabling GLOBAL_TIME_ENABLED on the sensor does not stop this
++        // hardware-clock poller. Its repeated depth-interface open/close cycles
++        // can cancel live USB requests on macOS, so don't start it in this mode.
++        auto capture_mode = std::getenv("PIPER_RS_USB_PRECAPTURED");
++        if (capture_mode && std::string(capture_mode) == "1")
++            return;
++#endif
+         if (is_enable)
+             _tf_keeper->start();
+         else
+diff --git a/src/libusb/handle-libusb.h b/src/libusb/handle-libusb.h
+index 1322152..4d99987 100644
+--- a/src/libusb/handle-libusb.h
++++ b/src/libusb/handle-libusb.h
+@@ -7,6 +7,7 @@
+ #include "context-libusb.h"
+ 
+ #include <chrono>
++#include <cstdlib>
+ 
+ #include "libusb.h"
+ 
+@@ -54,7 +55,17 @@ namespace librealsense
+                     throw std::runtime_error(msg.str());
+                 }
+ 
+-                sts = libusb_set_auto_detach_kernel_driver(_handle, true); // detach from kernel driver when claimed and re-attach when released.
++                try
++                {
++                bool auto_detach = true;
++#ifdef __APPLE__
++                // The RGB helper may hold an explicit capture for the entire
++                // camera. Per-interface auto-attach otherwise re-enumerates the
++                // whole Mac USB device while another interface is streaming.
++                auto capture_mode = std::getenv("PIPER_RS_USB_PRECAPTURED");
++                auto_detach = !(capture_mode && std::string(capture_mode) == "1");
++#endif
++                sts = libusb_set_auto_detach_kernel_driver(_handle, auto_detach);
+                 if(sts != LIBUSB_SUCCESS)
+                 {
+                     auto rs_sts =  libusb_status_to_rs(sts);
+@@ -69,6 +80,15 @@ namespace librealsense
+                     claim_interface_or_throw(i->get_number());
+ 
+                 _context->start_event_handler();
++                }
++                catch (...)
++                {
++                    // A failed constructor has no destructor. Release the
++                    // opened handle before its owning USB context can exit.
++                    libusb_close(_handle);
++                    _handle = nullptr;
++                    throw;
++                }
+             }
+ 
+             ~handle_libusb()
+diff --git a/src/libusb/messenger-libusb.cpp b/src/libusb/messenger-libusb.cpp
+index 6f56eef..af005cb 100644
+--- a/src/libusb/messenger-libusb.cpp
++++ b/src/libusb/messenger-libusb.cpp
+@@ -89,8 +89,8 @@ namespace librealsense
+             {
+                 req->set_active(false);
+                 std::string strerr = strerror(errno);
+-                LOG_WARNING("usb_request_queue returned error, endpoint: " << (int)request->get_endpoint()->get_address() << " error: " << strerr << ", number: " << (int)errno);
+-                return libusb_status_to_rs(errno);
++                LOG_WARNING("usb_request_queue returned error, endpoint: " << (int)request->get_endpoint()->get_address() << " libusb: " << libusb_error_name(sts) << " (" << sts << "), length: " << nr->length << ", errno: " << strerr);
++                return libusb_status_to_rs(sts);
+             }
+             return RS2_USB_STATUS_SUCCESS;
+         }
+@@ -103,7 +103,7 @@ namespace librealsense
+             {
+                 std::string strerr = strerror(errno);
+                 LOG_WARNING("usb_request_cancel returned error, endpoint: " << (int)request->get_endpoint()->get_address() << " error: " << strerr << ", number: " << (int)errno);
+-                return libusb_status_to_rs(errno);
++                return libusb_status_to_rs(sts);
+             }
+             return RS2_USB_STATUS_SUCCESS;
+         }
+diff --git a/src/uvc/uvc-device.cpp b/src/uvc/uvc-device.cpp
+index 9488d74..2276795 100644
+--- a/src/uvc/uvc-device.cpp
++++ b/src/uvc/uvc-device.cpp
+@@ -4,6 +4,7 @@
+ #include "uvc-device.h"
+ #include "uvc-parser.h"
+ #include "uvc-streamer.h"
++#include <cstdlib>
+ 
+ #include <rsutils/string/from.h>
+ 
+@@ -665,6 +666,14 @@ namespace librealsense
+ 
+         void rs_uvc_device::listen_to_interrupts()
+         {
++#ifdef __APPLE__
++            // These status interrupts currently only produce debug messages;
++            // they do not deliver RGB frames or notifications to a sensor.
++            // Avoid their unsafe native cancellation path in the RGB helper.
++            auto capture_mode = std::getenv("PIPER_RS_USB_PRECAPTURED");
++            if (capture_mode && std::string(capture_mode) == "1")
++                return;
++#endif
+             auto ctrl_interface = _usb_device->get_interface(static_cast<uint8_t>(_info.mi));
+             if (!ctrl_interface)
+                 return;

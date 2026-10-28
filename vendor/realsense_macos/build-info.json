@@ -1,0 +1,21 @@
+{
+  "sdk_version": "2.58.4",
+  "source": "https://github.com/realsenseai/librealsense",
+  "commit": "34d6c778e1134d8505adcd56bb57acbe7598a459",
+  "python": "3.12.14",
+  "architecture": "arm64",
+  "macos_build": "26.5.2",
+  "features": "RGB 640x480; RSUSB; no graphical tools; no DDS",
+  "libusb_version": "1.0.30",
+  "patches": [
+    "realsense-usb-status.patch"
+  ],
+  "libusb_source": "libusb-package 1.0.30.0",
+  "mac_usb_precapture": true,
+  "mac_rgb_aux_polling_disabled": true,
+  "binary_sha256": {
+    "libusb-1.0.dylib": "4dce40929185b63d58e48294576b33f80c13519aa4bda3f4fc678dfd4d0b4ee0",
+    "librealsense2.2.58.dylib": "3b1d6172b37ab6ba3f18fa73b51b6be65c5b85d52f12a12def7ca65759e31d4b",
+    "pyrealsense2.cpython-312-darwin.so": "c9ace1ab53b026f77112295ac4a4bcbec8df31c28cb5757389023994ce053a34"
+  }
+}
